@@ -1,0 +1,41 @@
+version: "3.8"
+
+services:
+
+  db:
+    container_name: postgresql_db
+    platform: linux/amd64
+    image: postgres
+    restart: always
+    ports:
+      - "5433:5433"
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    command: -p 5433
+
+  pgadmin:
+    container_name: pgadmin
+    platform: linux/amd64
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
+    ports:
+      - 5050:80
+    depends_on:
+      - db
+
+  app:
+    container_name: app
+    platform: linux/amd64
+    build: .
+    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/app
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+    restart: always
